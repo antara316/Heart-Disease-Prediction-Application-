@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Heart Disease Prediction</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ url_for("static", filename="images/heartback1.jpg") }}');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1;
+            margin: 40px auto;
+        }
+
+        .header {
+            padding: 20px;
+            text-align: center;
+            background: linear-gradient(to right, #53037e, #c57b9e);
+            color: white;
+            font-size: 32px;
+            border-radius: 10px;
+            margin: -20px -20px 20px -20px;
+        }
+
+        .profile-info {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info h2 {
+            color: #53037e;
+            margin-bottom: 15px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .prediction-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .prediction-card h3 {
+            color: #53037e;
+            margin-bottom: 15px;
+        }
+
+        .prediction-card p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .prediction-card .result {
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .prediction-card .result.positive {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .prediction-card .result.negative {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .nav-buttons button {
+            background: linear-gradient(to right, #007BFF, #0056b3);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+        }
+
+        .nav-buttons button:hover {
+            background: linear-gradient(to right, #0056b3, #004494);
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .profile-dropdown {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 2;
+        }
+
+        .profile-btn {
+            background: linear-gradient(to right, #53037e, #c57b9e);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .profile-btn:hover {
+            background: linear-gradient(to right, #3d025c, #9d4b6e);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 5px;
+            z-index: 3;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background 0.3s;
+        }
+
+        .dropdown-content a:hover {
+            background: #f5f5f5;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay"></div>
+    
+    <div class="profile-dropdown">
+        <button class="profile-btn" onclick="toggleDropdown()">
+            <i class="fas fa-user"></i> Profile
+        </button>
+        <div class="dropdown-content" id="dropdownContent">
+            <a href="{{ url_for('profile') }}">My Profile</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1 class="header">My Profile</h1>
+        
+        <div class="profile-info">
+            <h2>Personal Information</h2>
+            <p><strong>Name:</strong> {{ user.name }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+        </div>
+
+        <h2 style="color: #53037e; margin-bottom: 20px;">My Predictions</h2>
+        
+        {% for prediction in predictions %}
+        <div class="prediction-card">
+            <h3>Prediction #{{ loop.index }}</h3>
+            <p><strong>Date:</strong> {{ prediction.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+            <p><strong>Age:</strong> {{ prediction.input_data.age }}</p>
+            <p><strong>Sex:</strong> {{ 'Male' if prediction.input_data.sex == 1 else 'Female' }}</p>
+            <p><strong>Chest Pain Type:</strong> {{ prediction.input_data.cp }}</p>
+            <p><strong>Resting Blood Pressure:</strong> {{ prediction.input_data.trestbps }} mmHg</p>
+            <p><strong>Cholesterol:</strong> {{ prediction.input_data.chol }} mg/dl</p>
+            <p><strong>Fasting Blood Sugar:</strong> {{ '> 120 mg/dl' if prediction.input_data.fbs == 1 else '<= 120 mg/dl' }}</p>
+            <p><strong>Resting ECG:</strong> {{ prediction.input_data.restecg }}</p>
+            <p><strong>Maximum Heart Rate:</strong> {{ prediction.input_data.thalach }}</p>
+            <p><strong>Exercise Induced Angina:</strong> {{ 'Yes' if prediction.input_data.exang == 1 else 'No' }}</p>
+            <p><strong>ST Depression:</strong> {{ prediction.input_data.oldpeak }}</p>
+            <p><strong>Slope:</strong> {{ prediction.input_data.slope }}</p>
+            <p><strong>Number of Major Vessels:</strong> {{ prediction.input_data.ca }}</p>
+            <p><strong>Thalassemia:</strong> {{ prediction.input_data.thal }}</p>
+            
+            <div class="result {{ 'positive' if prediction.result == 1 else 'negative' }}">
+                Result: {{ 'Higher Risk of Heart Disease' if prediction.result == 1 else 'Lower Risk of Heart Disease' }}
+            </div>
+
+            <form action="{{ url_for('delete_prediction', prediction_id=prediction._id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="delete-btn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+        {% endfor %}
+
+        <div class="nav-buttons">
+            <button onclick="window.location.href='{{ url_for('sub') }}'">
+                <i class="fas fa-plus"></i> New Prediction
+            </button>
+            <button onclick="window.location.href='{{ url_for('index') }}'">
+                <i class="fas fa-home"></i> Home
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            document.getElementById('dropdownContent').classList.toggle('show');
+        }
+
+        // Close the dropdown if clicked outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-btn')) {
+                var dropdowns = document.getElementsByClassName("dropdown-content");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    var openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
